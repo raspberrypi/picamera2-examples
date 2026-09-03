@@ -1,9 +1,6 @@
 # picamera2-examples
 
-Examples, demo applications and the automated test suite for
-[Picamera2](https://github.com/raspberrypi/picamera2), the Python camera
-library for Raspberry Pi. This content was split out of the main Picamera2
-repository along with its full git history.
+Examples, demo apps and the test suite for [Picamera2](https://github.com/raspberrypi/picamera2).
 
 ## Requirements
 
