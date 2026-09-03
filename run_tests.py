@@ -7,7 +7,7 @@ import sys
 import time
 
 # Execute this script with no arguments to run all the tests listed in the
-# tests/test-list.txt file. It prints out whether each test passes, fails,
+# tests/test_list.txt file. It prints out whether each test passes, fails,
 # seems to contain an error in its output, or times out. The return code
 # is the number of non-passing tests, so the value zero indicates that
 # everything passed.
@@ -16,24 +16,26 @@ import time
 # folder and should be self-checking, returning a non-zero exit code if they
 # are deemed to have failed.
 #
-# The script assumes the Picamera2 code is in /home/pi/picamera2, the list
-# of tests to run is in tests/test_list.txt below that. The tests run in
-# the folder /home/pi/picamera2_tests where temporary files can be created,
-# and which are deleted before each test starts. These locations can be
-# altered with the options:
+# The script assumes Picamera2 itself is installed (for example with apt or
+# pip) and that the tests, examples and apps live alongside this script in
+# the picamera2-examples repository. The list of tests to run is in
+# tests/test_list.txt below that. The tests run in the folder
+# /home/pi/picamera2_tests where temporary files can be created, and which
+# are deleted before each test starts. These locations can be altered with
+# the options:
 #
 # -d - folder for temporary files where the tests run (default /home/pi/picamera2_tests)
-# -p - location where the picamera2 repository has been cloned (default /home/pi/picamera2)
+# -p - location of the picamera2-examples repository (default: the folder containing this script)
 # -t - file listing tests to be run (default tests/test_list.txt)
 #
 # Within the test list file, entries should be one per line and give the
-# location under the picamera2 folder. Any individual test must take less
+# location under the picamera2-examples folder. Any individual test must take less
 # than 30 seconds, otherwise they will be deemed to have timed out.
 # Any line starting with # is ignored. The special value EOL is also
 # recognised, which stops the reading of any further tests from the file.
 
 
-def load_test_list(test_list_file, picamera2_dir):
+def load_test_list(test_list_file, root_dir):
     tests = []
     with open(test_list_file, 'r') as f:
         for test in f:
@@ -41,7 +43,7 @@ def load_test_list(test_list_file, picamera2_dir):
             if test == "EOL":
                 break
             elif not test.startswith('#'):
-                tests.append(os.path.join(picamera2_dir, test))
+                tests.append(os.path.join(root_dir, test))
     return tests
 
 
@@ -128,12 +130,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='picamera2 automated tests')
     parser.add_argument('--dir', '-d', action='store', default='/home/pi/picamera2_tests', help='Folder in which to run tests')
     parser.add_argument(
+        '--root-dir',
         '--picamera2-dir',
         '-p',
         action='store',
         type=directoryexists,
-        default='/home/pi/picamera2',
-        help='Location of picamera2 folder',
+        default=os.path.dirname(os.path.abspath(__file__)),
+        help='Location of the picamera2-examples folder containing tests, examples and apps',
     )
     parser.add_argument(
         '--test-list-files',
@@ -145,15 +148,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     dir = args.dir
-    picamera2_dir = args.picamera2_dir
-    test_dir = os.path.join(picamera2_dir, "tests")
+    root_dir = args.root_dir
+    test_dir = os.path.join(root_dir, "tests")
     test_list_files = [os.path.join(test_dir, file.strip()) for file in args.test_list_files.split(",")]
 
     print("dir:", dir)
-    print("Picamera2 dir:", picamera2_dir)
+    print("Root dir:", root_dir)
     print("Test list files:", test_list_files)
 
-    all_tests = [load_test_list(file, picamera2_dir) for file in test_list_files]
+    all_tests = [load_test_list(file, root_dir) for file in test_list_files]
 
     if not os.path.exists(dir):
         os.makedirs(dir)
