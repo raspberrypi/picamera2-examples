@@ -20,7 +20,7 @@ picam2.still_configuration.size = (1024, 768)
 picam2.still_configuration.enable_lores()
 picam2.still_configuration.lores.format = "YUV420"
 picam2.still_configuration.enable_raw()
-half_res = tuple([v // 2 for v in picam2.camera_properties['PixelArraySize']])
+half_res = tuple([v // 2 for v in picam2.sensor_resolution])
 picam2.still_configuration.raw.size = half_res
 
 picam2.configure("preview")
@@ -41,7 +41,7 @@ if config.format != "YUV420":
 
 picam2.configure("still")
 config = CameraConfiguration(picam2.camera_configuration(), picam2)
-full_res = tuple(picam2.camera_properties['PixelArraySize'])
+full_res = picam2.sensor_resolution
 has_binning = any(mode.get("size", full_res) != full_res for mode in picam2.sensor_modes)
 if has_binning and config.raw.size != half_res:
     raise RuntimeError("still raw size incorrect")
