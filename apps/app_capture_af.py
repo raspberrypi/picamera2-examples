@@ -24,7 +24,7 @@ preview_height = picam2.sensor_resolution[1] * 800 // picam2.sensor_resolution[0
 preview_height -= preview_height % 2
 preview_size = (preview_width, preview_height)
 # We also want a full FoV raw mode, this gives us the 2x2 binned mode.
-raw_size = tuple([v // 2 for v in picam2.camera_properties['PixelArraySize']])
+raw_size = tuple([v // 2 for v in picam2.sensor_resolution])
 preview_config = picam2.create_preview_configuration({"size": preview_size}, raw={"size": raw_size})
 picam2.configure(preview_config)
 if 'AfMode' not in picam2.camera_controls:

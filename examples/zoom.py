@@ -12,19 +12,18 @@ picam2.start_preview(Preview.QTGL)
 preview_config = picam2.create_preview_configuration()
 picam2.configure(preview_config)
 
+# The default crop is the largest aspect-ratio preserving size allowed by the camera mode.
+crop = picam2.camera_controls['ScalerCrop'][2]
+
 picam2.start()
 time.sleep(2)
-
-size = picam2.capture_metadata()['ScalerCrop'][2:]
-
-full_res = picam2.camera_properties['PixelArraySize']
 
 for _ in range(20):
     # This syncs us to the arrival of a new camera frame:
     picam2.capture_metadata()
 
-    size = [int(s * 0.95) for s in size]
-    offset = [(r - s) // 2 for r, s in zip(full_res, size)]
-    picam2.set_controls({"ScalerCrop": offset + size})
+    # Zoom in on 95% of what we had before. To stay centred, half of what we skip becomes "offset".
+    crop = [crop[0] + 0.025 * crop[2], crop[1] + 0.025 * crop[3], 0.95 * crop[2], 0.95 * crop[3]]
+    picam2.set_controls({"ScalerCrop": [round(x) for x in crop]})
 
 time.sleep(2)
