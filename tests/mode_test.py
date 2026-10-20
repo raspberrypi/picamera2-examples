@@ -3,16 +3,48 @@
 # Test that we can read the sensor modes, and then configure the camera
 # into each mode and get the correct framerate
 
+import fcntl
+import os
 import time
 from math import isclose
 
 from libcamera import Transform
+from videodev2 import (
+    V4L2_CID_HFLIP,
+    V4L2_CID_VFLIP,
+    V4L2_CTRL_FLAG_MODIFY_LAYOUT,
+    VIDIOC_QUERYCTRL,
+    v4l2_queryctrl,
+)
 
 from picamera2 import Picamera2
 from picamera2.sensor_format import SensorFormat
 
+
+def flips_modify_layout(camera_id):
+    # Find the sensor's subdevice from the camera id (its device tree path),
+    # and report whether its flip controls change the Bayer order.
+    for i in range(16):
+        of_node = f"/sys/class/video4linux/v4l-subdev{i}/device/of_node"
+        if not (os.path.islink(of_node) and camera_id in os.readlink(of_node)):
+            continue
+        with open(f"/dev/v4l-subdev{i}", "rb+", buffering=0) as fd:
+            for cid in (V4L2_CID_HFLIP, V4L2_CID_VFLIP):
+                ctrl = v4l2_queryctrl(id=cid)
+                try:
+                    fcntl.ioctl(fd, VIDIOC_QUERYCTRL, ctrl)
+                except OSError:
+                    continue
+                if ctrl.flags & V4L2_CTRL_FLAG_MODIFY_LAYOUT:
+                    return True
+        return False
+    # Sensor subdevice not found: assume the flips do change the Bayer order.
+    return True
+
+
 Picamera2.set_logging()
 picam2 = Picamera2()
+modify_layout = flips_modify_layout(picam2.camera.id)
 
 
 def check(raw_config, fps):
@@ -27,9 +59,11 @@ def check(raw_config, fps):
     assert camera_config["raw"]["size"] == raw_config["size"]
     set_format = SensorFormat(camera_config["raw"]["format"])
     requested_format = SensorFormat(raw_config["format"])
-    # For now, assume all our cameras are rotated 180 degrees.
-    rotation = picam2.camera_properties["Rotation"]
-    set_format.transform(Transform(rotation=rotation))
+    # The sensor modes report the native Bayer order, so undo the flips that
+    # correct the sensor's rotation -- but only if they change the Bayer order.
+    if modify_layout:
+        rotation = picam2.camera_properties["Rotation"]
+        set_format.transform(Transform(rotation=rotation))
     # Bayer order should match, as should bit depth (taking it from the sensor config
     # if present). Insist that there either is packing of some form on both, or none.
     if 'sensor' in camera_config and camera_config['sensor'] is not None:
