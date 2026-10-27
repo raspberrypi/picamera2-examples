@@ -2,6 +2,7 @@
 
 # Super-simple PyQt6 GL preview app with default platform settings.
 # Qt6 auto-selects Wayland when WAYLAND_DISPLAY is set, X11 otherwise.
+# Because PyQt6 is imported first, QGlPicamera2 automatically uses PyQt6 too.
 
 try:
     from PyQt6.QtCore import QTimer
@@ -11,14 +12,14 @@ except ImportError:
     quit()
 
 from picamera2 import Picamera2
-from picamera2.previews.qt import QGl6Picamera2, is_wayland_gl_widget
+from picamera2.previews.qt import QGlPicamera2, is_wayland_gl_widget
 
 picam2 = Picamera2()
 picam2.configure(picam2.create_preview_configuration())
 
 app = QApplication([])
 
-widget = QGl6Picamera2(picam2, width=640, height=480)
+widget = QGlPicamera2(picam2, width=640, height=480)
 widget.setWindowTitle("QtGL PyQt6")
 widget.show()
 picam2.start()

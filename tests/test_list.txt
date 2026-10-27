@@ -40,6 +40,8 @@ examples/overlay_qt.py
 examples/picamera2_multiprocessing.py
 examples/pick_mode.py
 examples/preview.py
+examples/preview_pyqt6.py
+examples/preview_pyside6.py
 examples/preview_qtgl_wayland.py
 examples/preview_qtgl_wayland_direct.py
 examples/preview_qtgl_x11.py
@@ -70,6 +72,7 @@ tests/aegc.py
 tests/alignment.py
 tests/app_dual.py
 tests/app_full_test.py
+tests/app_qtgl_binding.py
 tests/app_test.py
 tests/app_test_pyqt6.py
 tests/app_test_pyside6.py
@@ -111,6 +114,7 @@ tests/preview_location_test.py
 tests/preview_start_stop.py
 tests/quality_check.py
 tests/qt_gl_preview_test.py
+tests/qt_binding_test.py
 tests/remote_array.py
 tests/sync_test.py
 tests/stop_slow_framerate.py
